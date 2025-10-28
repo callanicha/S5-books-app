@@ -1,14 +1,9 @@
 import { User } from "lucide-react"
+import type { Author } from "../types/Authors"
 
 interface AuthorCardProps {
-	author: {
-		id: number
-		name: string
-		bio: string
-		birthYear: number
-		country: string
-	}
-	bookCount: number
+    author: Author
+    bookCount: number
 }
 
 const AuthorCard = ({ author, bookCount }: AuthorCardProps) => {

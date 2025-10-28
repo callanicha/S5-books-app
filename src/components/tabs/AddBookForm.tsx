@@ -1,6 +1,8 @@
 import { useState, type FormEvent } from "react"
 import type { Author } from "../../types/Authors"
 import type { Book } from "../../types/Book"
+import { searchBooksByTitle, type SuggestedBook } from "../../services/googleBooksService"
+import BookSearchResults from "./BookSearchResults"
 
 
 interface AddBookFormProps {
@@ -20,6 +22,9 @@ const AddBookForm = ({ authors, onSubmit, onCancel }: AddBookFormProps) => {
 	})
 
 	const [errors, setErrors] = useState<Partial<Record<keyof Book, string>>>({})
+	const [isSearching, setIsSearching] = useState(false)
+    const [searchResults, setSearchResults] = useState<SuggestedBook[]>([])
+	const [isbnNotFound, setIsbnNotFound] = useState<boolean>(false)
 
 	const handleChange = (
 		e: React.ChangeEvent<
@@ -37,7 +42,48 @@ const AddBookForm = ({ authors, onSubmit, onCancel }: AddBookFormProps) => {
 		// Clear error when user starts typing
 		if (errors[name as keyof Book]) {
 			setErrors((prev) => ({ ...prev, [name]: "" }))
+			setIsbnNotFound(false)
 		}
+
+		// Search for books by title as user types (asynchronously)
+		if (name === "title" && value.length > 2) {
+			setIsSearching(true)
+			searchBooksByTitle(value)
+				.then((books) => {
+					setSearchResults(books)
+					setIsbnNotFound(books.length > 0 && books.every((b) => !b.isbn))
+				})
+				.catch(() => {
+					setSearchResults([])
+					setIsbnNotFound(false)
+				})
+				.finally(() => {
+					setIsSearching(false)
+				})
+		} else if (name === "title" && value.length <= 2) {
+			setSearchResults([])
+		}
+	}
+
+    const handleBookClick = (book: SuggestedBook) => {
+		setFormData((prev) => ({
+			...prev,
+			title: book.title,
+			isbn: book.isbn,
+			publishedYear: book.publishedYear,
+			description: book.description,
+			coverUrl: book.coverUrl,
+		}))
+        // Try select author automatically by name
+        if (book.authorName) {
+            const foundAuthor = authors.find((a) => a.name === book.authorName)
+            if (foundAuthor?.id) {
+                setFormData((prev) => ({ ...prev, authorId: foundAuthor.id! }))
+            } else {
+                setErrors({ authorId: "No author found for this book. Please select manually." })
+            }
+        }
+		setSearchResults([])
 	}
 
 	const validate = (): boolean => {
@@ -122,6 +168,20 @@ const AddBookForm = ({ authors, onSubmit, onCancel }: AddBookFormProps) => {
 						}`}
 						placeholder="Enter book title"
 					/>
+					{isSearching && (
+						<p className="mt-1 text-xs text-gray-500">Searching…</p>
+					)}
+					{!isSearching && searchResults.length > 0 && (
+						<BookSearchResults
+							searchResults={searchResults}
+							authors={authors}
+							onSelectBook={handleBookClick}
+							onClearResults={() => setSearchResults([])}
+						/>
+					)}
+					{!isSearching && isbnNotFound && (
+						<p className="mt-1 text-xs text-red-500">No ISBN available</p>
+					)}
 					{errors.title && (
 						<p className="mt-1 text-sm text-red-600">{errors.title}</p>
 					)}
