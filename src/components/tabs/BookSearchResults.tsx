@@ -1,14 +1,12 @@
-import type { Author } from "../../types/Authors"
 import type { SuggestedBook } from "../../services/googleBooksService"
 
 interface BookSearchResultsProps {
     searchResults: SuggestedBook[]
-    authors: Author[]
     onSelectBook: (book: SuggestedBook) => void
     onClearResults: () => void
 }
 
-const BookSearchResults = ({ searchResults, authors, onSelectBook, onClearResults }: BookSearchResultsProps) => {
+const BookSearchResults = ({ searchResults, onSelectBook, onClearResults }: BookSearchResultsProps) => {
     if (searchResults.length === 0) return null
 
     return (

@@ -174,7 +174,6 @@ const AddBookForm = ({ authors, onSubmit, onCancel }: AddBookFormProps) => {
 					{!isSearching && searchResults.length > 0 && (
 						<BookSearchResults
 							searchResults={searchResults}
-							authors={authors}
 							onSelectBook={handleBookClick}
 							onClearResults={() => setSearchResults([])}
 						/>
