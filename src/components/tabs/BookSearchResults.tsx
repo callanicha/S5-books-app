@@ -11,12 +11,6 @@ interface BookSearchResultsProps {
 const BookSearchResults = ({ searchResults, authors, onSelectBook, onClearResults }: BookSearchResultsProps) => {
     if (searchResults.length === 0) return null
 
-    const getAuthorName = (authorId: number): string => {
-        if (!authorId) return "Unknown author"
-        const found = authors.find(a => a.id === authorId)
-        return found?.name ?? "Unknown author"
-    }
-
     return (
         <div className="mt-2 border border-gray-200 rounded-md max-h-64 overflow-auto bg-white shadow-sm">
             <ul className="divide-y divide-gray-100">
